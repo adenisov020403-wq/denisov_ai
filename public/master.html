@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет мастера ПОВ</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --success-color: #2ecc71;
+            --light-gray: #f5f7fa;
+            --medium-gray: #ddd;
+            --dark-gray: #7f8c8d;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--light-gray);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Шапка */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .header-info {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        
+        .header-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .user-info {
+            font-size: 1.1em;
+        }
+        
+        .logout-btn {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        /* Панель управления */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .date-picker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .date-input {
+            padding: 8px 12px;
+            border: 1px solid var(--medium-gray);
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        
+        .btn {
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+        }
+        
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+        
+        /* Расписание */
+        .schedule-container {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        /* Группы дней */
+        .day-group {
+            margin-bottom: 15px;
+            border: 1px solid var(--medium-gray);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .day-header:hover {
+            background-color: #e9ecef;
+        }
+        
+        .day-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .day-date {
+            font-size: 1.1em;
+        }
+        
+        .day-count {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+        }
+        
+        .toggle-icon {
+            transition: transform 0.3s;
+        }
+        
+        .day-content {
+            display: none;
+            padding: 10px;
+        }
+        
+        .day-group.expanded .day-content {
+            display: block;
+        }
+        
+        .day-group.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        
+        
+        /* Элементы занятий */
+        .session-item {
+            display: grid;
+            grid-template-columns: 80px 120px 1fr 150px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--medium-gray);
+            align-items: center;
+            gap: 15px; /* Добавляем отступ между колонками */
+        }
+        
+        .session-item:last-child {
+            border-bottom: none;
+        }
+        
+        .session-item:hover {
+            background-color: #f9f9f9;
+        }
+        
+        /* Статусы */
+        .status {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            color: white;
+            display: inline-block;
+            text-align: center;
+            margin-right: 100px;
+        }
+        
+        .status-free {
+            background-color: var(--success-color);
+        }
+        
+        .status-booked {
+            background-color: var(--danger-color);
+        }
+        
+        .status-reserved {
+            background-color: var(--warning-color);
+        }
+        
+        /* Информация о курсанте */
+        .cadet-info {
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: var(--dark-gray);
+            word-break: break-word; /* Перенос длинных имен */
+        }
+        /* Кнопки действий */
+        .action-btn {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-right: 5px;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .cancel-btn {
+            background-color: var(--dark-gray);
+        }
+        
+        .delete-btn {
+            background-color: var(--danger-color);
+        }
+        
+        .reserve-btn {
+            background-color: var(--warning-color);
+        }
+        
+        .free-btn {
+            background-color: var(--success-color);
+        }
+        
+        /* Сообщения */
+        .loading, .no-sessions, .error-message {
+            padding: 20px;
+            text-align: center;
+            color: var(--dark-gray);
+        }
+        
+        .error-message {
+            color: var(--danger-color);
+        }
+        
+        .retry-btn {
+            margin-top: 10px;
+            padding: 8px 15px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .retry-btn:hover {
+            background-color: #2980b9;
+        }
+        
+
+        /* Стили для формы отчета */
+        .report-form {
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .telegram-section {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .telegram-status {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .telegram-connected {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        
+        .telegram-disconnected {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .telegram-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+        }
+        
+        .telegram-link {
+            display: inline-block;
+            background-color: #0088cc;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .telegram-link:hover {
+            background-color: #006699;
+        }
+        
+        .telegram-instruction {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #0088cc;
+        }
+        
+        .copy-btn {
+            background-color: #f5f7fa;
+            border: 1px solid #ddd;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 0.9em;
+        }
+        
+        .copy-btn:hover {
+            background-color: #e9ecef;
+        }
+        
+        .token-container {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        .token-value {
+            font-family: monospace;
+            background-color: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .date-picker {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            
+            .session-actions {
+                grid-column: 1 / -1;
+                margin-top: 10px;
+                display: flex;
+                gap: 5px;
+            }
+            
+            .action-btn {
+                flex-grow: 1;
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Шапка -->
+        <div class="header">
+            <div class="header-info">
+                <div class="header-title">Автошкола УГНТУ</div>
+                <div class="user-info" id="masterInfo"></div>
+            </div>
+            <button class="logout-btn" id="logoutBtn">Выйти</button>
+        </div>
+       
+        
+        <!-- Секция Telegram уведомлений -->
+        <div class="telegram-section">
+            <h2>Telegram уведомления</h2>
+            <div class="telegram-status">
+                <img src="https://telegram.org/img/t_logo.png" class="telegram-icon" alt="Telegram">
+                <span id="telegramStatusText">Проверка статуса...</span>
+            </div>
+            <div id="telegramConnected" style="display: none;">
+                <p>Ваш Telegram аккаунт успешно привязан. Вы будете получать уведомления:</p>
+                <ul>
+                    <li>Когда курсант отменяет занятие</li>
+                    <li>За час до начала занятия</li>
+                </ul>
+            </div>
+            <div id="telegramDisconnected" style="display: none;">
+                <p>Для получения уведомлений в Telegram:</p>
+                <div id="telegramTokenSection" style="display: none;">
+                    <p>1. Нажмите на кнопку ниже, чтобы привязать аккаунт:</p>
+                    <div class="token-container">
+                        <div class="token-value" id="telegramTokenValue"></div>
+                        <button class="copy-btn" onclick="copyToken()">Копировать</button>
+                    </div>
+                    <a id="telegramLink" class="telegram-link" target="_blank">Привязать Telegram</a>
+                    <div class="telegram-instruction">
+                        <p>2. После нажатия кнопки откроется Telegram. Нажмите "Start" в диалоге с ботом.</p>
+                        <p>3. Если кнопка не работает, скопируйте команду выше и отправьте ее вручную боту.</p>
+                    </div>
+                </div>
+                <button id="connectTelegramBtn" class="btn btn-primary">Привязать Telegram</button>
+            </div>
+        </div>
+
+
+
+        <!-- Панель управления -->
+        <div class="controls">
+            <div class="date-picker">
+                <label for="dateFilter">Дата:</label>
+                <input type="date" id="dateFilter" class="date-input">
+                <button id="todayBtn" class="btn btn-primary">Сегодня</button>
+            </div>
+            <div>
+                <button id="generateReportBtn" class="btn btn-primary">Сформировать отчет</button>
+                <button id="reserveAllBtn" class="btn btn-warning">Зарезервировать все свободные</button>
+                <button id="viewCadetsBtn" class="btn btn-primary">Список курсантов</button>
+            </div>
+        </div>
+        
+        
+        
+        <!-- Модальное окно для формирования отчета -->
+        <div id="reportModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close-btn" onclick="document.getElementById('reportModal').style.display='none'">&times;</span>
+                <h2>Формирование отчета</h2>
+                <div class="report-form">
+                    <div class="form-group">
+                        <label for="startDate">Начальная дата:</label>
+                        <input type="date" id="startDate" class="date-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">Конечная дата:</label>
+                        <input type="date" id="endDate" class="date-input">
+                    </div>
+                    <button id="generateExcelBtn" class="btn btn-primary">Сформировать Excel</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Добавим модальное окно для отображения курсантов -->
+        <div id="cadetsModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <h2>Список курсантов</h2>
+                <div id="cadetsList"></div>
+            </div>
+        </div>
+        <!-- Добавим стили для модального окна -->
+        <style>
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.5);
+            }
+            
+            .modal-content {
+                background-color: white;
+                margin: 5% auto;
+                padding: 20px;
+                border-radius: 5px;
+                width: 80%;
+                max-width: 800px;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+            
+            .close-btn {
+                float: right;
+                font-size: 1.5em;
+                cursor: pointer;
+            }
+            
+            .cadet-item {
+                display: grid;
+                grid-template-columns: 1fr 1fr 100px;
+                padding: 10px;
+                border-bottom: 1px solid var(--medium-gray);
+                align-items: center;
+            }
+            
+            .cadet-header {
+                font-weight: bold;
+                background-color: #f5f5f5;
+            }
+            
+            @media (max-width: 768px) {
+                .cadet-item {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+        <!-- Расписание -->
+        <div class="schedule-container">
+            <div id="sessionsList"></div>
+        </div>
+    </div>
+    
+    <script>
+        
+        let currentMaster = null;
+        let telegramConnected = false;
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Проверка авторизации
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user || !user.id || localStorage.getItem('role') !== 'master') {
+                window.location.href = '/';
+                return;
+            }
+            
+            // Загрузка данных мастера
+            await loadMasterData(user.id);
+            
+            // Проверка статуса Telegram
+            await checkTelegramStatus(user.id);
+            
+            // Установка текущей даты по умололчанию
+            setTodayDate();
+            
+            // Загрузка расписания
+            await loadSchedule(user.id);
+            
+            // Назначение обработчиков событий
+            setupEventListeners();
+        });
+        
+        async function checkTelegramStatus(masterId) {
+            try {
+                const response = await fetch(`/api/master/profile?id=${masterId}`);
+                if (!response.ok) throw new Error('Ошибка проверки статуса Telegram');
+                
+                const masterData = await response.json();
+                telegramConnected = !!masterData.telegram_chat_id;
+                
+                updateTelegramUI(telegramConnected);
+            } catch (err) {
+                console.error('Ошибка проверки статуса Telegram:', err);
+                document.getElementById('telegramStatusText').textContent = 
+                    'Ошибка при проверке статуса Telegram';
+                document.getElementById('telegramDisconnected').style.display = 'block';
+            }
+        }
+        
+        function updateTelegramUI(connected) {
+            const statusText = document.getElementById('telegramStatusText');
+            const connectedDiv = document.getElementById('telegramConnected');
+            const disconnectedDiv = document.getElementById('telegramDisconnected');
+            
+            if (connected) {
+                statusText.textContent = 'Telegram аккаунт привязан';
+                statusText.className = 'telegram-connected';
+                connectedDiv.style.display = 'block';
+                disconnectedDiv.style.display = 'none';
+            } else {
+                statusText.textContent = 'Telegram аккаунт не привязан';
+                statusText.className = 'telegram-disconnected';
+                connectedDiv.style.display = 'none';
+                disconnectedDiv.style.display = 'block';
+            }
+        }
+        
+        async function generateTelegramToken() {
+            try {
+                const response = await fetch('/api/generate-telegram-token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_id: currentMaster.id,
+                        role: 'master'
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Ошибка генерации токена');
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Не удалось сгенерировать токен');
+                }
+                
+                // Показываем токен и ссылку
+                document.getElementById('telegramTokenSection').style.display = 'block';
+                document.getElementById('telegramTokenValue').textContent = result.token;
+                
+                const botUsername = result.bot_username || 'autoschool_usptu_bot';
+                const telegramLink = document.getElementById('telegramLink');
+                telegramLink.href = `https://t.me/${botUsername}?start=${result.token}`;
+                telegramLink.textContent = `Привязать Telegram (@${botUsername})`;
+                
+                // Скрываем кнопку генерации
+                document.getElementById('connectTelegramBtn').style.display = 'none';
+                
+            } catch (err) {
+                console.error('Ошибка генерации Telegram токена:', err);
+                alert(err.message);
+            }
+        }
+        
+        function copyToken() {
+            const token = document.getElementById('telegramTokenValue').textContent;
+            navigator.clipboard.writeText(token).then(() => {
+                alert('Токен скопирован в буфер обмена!');
+            }).catch(err => {
+                console.error('Ошибка копирования:', err);
+                alert('Не удалось скопировать токен');
+            });
+        }
+        
+
+        
+        function formatDayName(dayName) {
+            const days = {
+                'Monday': 'Понедельник',
+                'Tuesday': 'Вторник',
+                'Wednesday': 'Среда',
+                'Thursday': 'Четверг',
+                'Friday': 'Пятница',
+                'Saturday': 'Суббота',
+                'Sunday': 'Воскресенье'
+            };
+            return days[dayName] || dayName;
+        }
+        
+        
+
+        
+        function getStatusText(status) {
+            const statusMap = {
+                'free': 'Свободно',
+                'booked': 'Забронировано',
+                'reserved': 'Зарезервировано'
+            };
+            return statusMap[status] || status;
+        }
+        
+        function getStatusClass(status) {
+            const classMap = {
+                'free': 'status-free',
+                'booked': 'status-booked',
+                'reserved': 'status-reserved'
+            };
+            return classMap[status] || '';
+        }
+        
+        async function loadMasterData(masterId) {
+            try {
+                const response = await fetch(`/api/master/profile?id=${masterId}`);
+                if (!response.ok) throw new Error('Ошибка загрузки данных');
+                
+                const masterData = await response.json();
+                currentMaster = masterData;
+                
+                // Отображение информации о мастере
+                document.getElementById('masterInfo').textContent = 
+                    `${masterData.last_name} ${masterData.first_name} ${masterData.middle_name}`;
+            } catch (err) {
+                console.error('Ошибка загрузки данных мастера:', err);
+                alert('Не удалось загрузить данные мастера');
+            }
+        }
+        
+        async function loadSchedule(masterId) {
+            const sessionsList = document.getElementById('sessionsList');
+            sessionsList.innerHTML = '<div class="loading">Загрузка расписания...</div>';
+            
+            try {
+                const dateFilter = document.getElementById('dateFilter').value;
+                let url = `/api/master/schedule?master_id=${masterId}`;
+                
+                if (dateFilter) {
+                    url += `&date=${dateFilter}`;
+                }
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Ошибка сервера');
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Не удалось загрузить расписание');
+                }
+                
+                if (result.data.length === 0) {
+                    sessionsList.innerHTML = '<div class="no-sessions">Нет занятий на выбранную дату</div>';
+                    return;
+                }
+                
+                renderSchedule(result.data);
+            } catch (err) {
+                console.error('Ошибка загрузки расписания:', err);
+                sessionsList.innerHTML = `
+                    <div class="error-message">
+                        Ошибка: ${err.message}
+                        <button class="retry-btn" onclick="loadSchedule(${masterId})">Попробовать снова</button>
+                    </div>
+                `;
+            }
+        }
+        
+        function setTodayDate() {
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0];
+    document.getElementById('dateFilter').value = dateStr;
+}
+
+function formatDate(dateStr) {
+    try {
+        // Создаем дату из строки в формате YYYY-MM-DD
+        const [year, month, day] = dateStr.split('-');
+        const date = new Date(year, month - 1, day);
+        
+        if (isNaN(date.getTime())) {
+            throw new Error('Invalid date');
+        }
+        
+        return date.toLocaleDateString('ru-RU', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+    } catch (e) {
+        console.error('Error formatting date:', e);
+        return dateStr;
+    }
+}
+
+function renderSchedule(sessions) {
+    const sessionsList = document.getElementById('sessionsList');
+    sessionsList.innerHTML = '';
+    
+    const daysMap = {};
+    
+    sessions.forEach(session => {
+        const dateStr = session.session_date;
+        
+        if (!daysMap[dateStr]) {
+            daysMap[dateStr] = {
+                date: dateStr,
+                dayName: session.day_name,
+                sessions: []
+            };
+        }
+        daysMap[dateStr].sessions.push(session);
+    });
+    
+    const sortedDays = Object.values(daysMap).sort((a, b) => 
+        new Date(a.date) - new Date(b.date));
+    
+    sortedDays.forEach(day => {
+        const dayGroup = document.createElement('div');
+        dayGroup.className = 'day-group';
+        
+        const formattedDate = formatDate(day.date);
+        
+        dayGroup.innerHTML = `
+            <div class="day-header" onclick="toggleDay(this.parentElement)">
+                <div class="day-title">
+                    <div class="day-date">${day.dayName}, ${formattedDate}</div>
+                    <div class="day-count">${day.sessions.length}</div>
+                </div>
+                <div class="toggle-icon">▼</div>
+            </div>
+            <div class="day-content">
+                ${day.sessions.map(session => `
+                    <div class="session-item">
+                        <div>${session.session_time}</div>  <!-- Используем время как есть -->
+                        <div>
+                            <span class="status ${getStatusClass(session.status)}">
+                                ${getStatusText(session.status)}
+                            </span>
+                        </div>
+                        <div>
+                            ${session.cadet_id ? 
+                                `<div class="cadet-info">
+                                    ${session.cadet_last_name} ${session.cadet_first_name[0]}.${session.cadet_middle_name[0]}.
+                                </div>` : ''
+                            }
+                        </div>
+                        <div class="session-actions">
+                            ${session.status === 'free' ? 
+                                `<button class="action-btn reserve-btn" onclick="reserveSession(${session.id})">
+                                    Резервировать
+                                </button>` : ''
+                            }
+                            ${session.status === 'reserved' ? 
+                                `<button class="action-btn free-btn" onclick="cancelReservation(${session.id})">
+                                    Отменить резерв
+                                </button>` : ''
+                            }
+                            ${session.status === 'booked' ? 
+                                `<button class="action-btn cancel-btn" onclick="cancelBooking(${session.id})">
+                                    Отменить запись
+                                </button>` : ''
+                            }
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        
+        sessionsList.appendChild(dayGroup);
+    });
+}
+async function loadSchedule(masterId) {
+    const sessionsList = document.getElementById('sessionsList');
+    sessionsList.innerHTML = '<div class="loading">Загрузка расписания...</div>';
+    
+    try {
+        const dateFilter = document.getElementById('dateFilter').value;
+        let url = `/api/master/schedule?master_id=${masterId}`;
+        
+        if (dateFilter) {
+            url += `&date=${dateFilter}`;
+        }
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Не удалось загрузить расписание');
+        }
+        
+        if (!Array.isArray(result.data)) {
+            throw new Error('Некорректный формат данных');
+        }
+        
+        if (result.data.length === 0) {
+            sessionsList.innerHTML = '<div class="no-sessions">Нет занятий на выбранную дату</div>';
+            return;
+        }
+        
+        renderSchedule(result.data);
+    } catch (err) {
+        console.error('Ошибка загрузки расписания:', err);
+        sessionsList.innerHTML = `
+            <div class="error-message">
+                Ошибка: ${err.message}
+                <button class="retry-btn" onclick="loadSchedule(${masterId})">Попробовать снова</button>
+            </div>
+        `;
+    }
+}
+        
+        function setupEventListeners() {
+            
+
+            
+            document.getElementById('viewCadetsBtn').addEventListener('click', () => {
+                loadCadetsList(currentMaster.id);
+            });
+            // Кнопка "Сегодня"
+            document.getElementById('todayBtn').addEventListener('click', () => {
+                setTodayDate();
+                loadSchedule(currentMaster.id);
+            });
+            
+            // Изменение даты фильтра
+            document.getElementById('dateFilter').addEventListener('change', () => {
+                loadSchedule(currentMaster.id);
+            });
+            
+            // Кнопка выхода
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('user');
+                localStorage.removeItem('role');
+                window.location.href = '/';
+            });
+            
+
+            // Кнопка привязки Telegram
+            document.getElementById('connectTelegramBtn').addEventListener('click', generateTelegramToken);
+
+
+            // Кнопка резервирования всех свободных занятий
+            document.getElementById('reserveAllBtn').addEventListener('click', async () => {
+                if (confirm('Вы уверены, что хотите зарезервировать все свободные занятия на выбранную дату?')) {
+                    try {
+                        const response = await fetch('/api/master/available-sessions', {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        if (!response.ok) {
+                            const error = await response.json();
+                            throw new Error(error.error || 'Ошибка сервера');
+                        }
+                        
+                        const result = await response.json();
+                        
+                        if (result.count === 0) {
+                            alert('Нет свободных занятий для резервирования');
+                            return;
+                        }
+                        
+                        // Резервируем все свободные занятия
+                        for (const session of result.data) {
+                            await reserveSession(session.id, true);
+                        }
+                        
+                        alert(`Успешно зарезервировано ${result.count} занятий`);
+                        await loadSchedule(currentMaster.id);
+                    } catch (err) {
+                        console.error('Ошибка при массовом резервировании:', err);
+                        alert(err.message);
+                    }
+                }
+            });
+
+            // добавление Excel:
+            document.getElementById('generateReportBtn').addEventListener('click', () => {
+                const modal = document.getElementById('reportModal');
+                modal.style.display = 'block';
+                
+                // Установка дат по умолчанию (текущий месяц)
+                const today = new Date();
+                const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                
+                document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
+                document.getElementById('endDate').value = lastDay.toISOString().split('T')[0];
+            });
+
+            document.getElementById('generateExcelBtn').addEventListener('click', async () => {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                if (!startDate || !endDate) {
+                    alert('Пожалуйста, укажите обе даты');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/api/master/generate-report?master_id=${currentMaster.id}&start_date=${startDate}&end_date=${endDate}`);
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Ошибка сервера');
+                    }
+                    
+                    // Получаем blob с Excel файлом
+                    const blob = await response.blob();
+                    
+                    // Создаем ссылку для скачивания
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Отчет_наката_часов_${startDate}_${endDate}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    // Закрываем модальное окно
+                    document.getElementById('reportModal').style.display = 'none';
+                    
+                } catch (err) {
+                    console.error('Ошибка при формировании отчета:', err);
+                    alert(err.message);
+                }
+            });
+        }
+        
+        async function reserveSession(sessionId, silent = false) {
+            if (!silent && !confirm('Вы уверены, что хотите зарезервировать это занятие?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/master/reserve-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        master_id: currentMaster.id
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Ошибка сервера');
+                }
+                
+                if (!silent) {
+                    alert('Занятие успешно зарезервировано');
+                }
+                
+                await loadSchedule(currentMaster.id);
+            } catch (err) {
+                console.error('Ошибка при резервировании:', err);
+                alert(err.message);
+            }
+        }
+        
+        async function cancelReservation(sessionId) {
+            if (!confirm('Вы уверены, что хотите отменить резервирование этого занятия?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/master/cancel-reservation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        master_id: currentMaster.id
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Ошибка сервера');
+                }
+                
+                alert('Резервирование успешно отменено');
+                await loadSchedule(currentMaster.id);
+            } catch (err) {
+                console.error('Ошибка при отмене резервирования:', err);
+                alert(err.message);
+            }
+        }
+        
+        async function cancelBooking(sessionId) {
+            if (!confirm('Вы уверены, что хотите отменить запись курсанта на это занятие?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/master/cancel-booking', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        master_id: currentMaster.id
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Ошибка сервера');
+                }
+                
+                alert('Запись курсанта успешно отменена');
+                await loadSchedule(currentMaster.id);
+            } catch (err) {
+                console.error('Ошибка при отмене записи:', err);
+                alert(err.message);
+            }
+        }
+        
+
+
+        // Функция для загрузки списка курсантов
+        async function loadCadetsList(masterId) {
+            const modal = document.getElementById('cadetsModal');
+            const cadetsList = document.getElementById('cadetsList');
+            cadetsList.innerHTML = '<div class="loading">Загрузка списка курсантов...</div>';
+            
+            // Показываем модальное окно
+            modal.style.display = 'block';
+            
+            // Закрытие модального окна
+            document.querySelector('.close-btn').onclick = () => {
+                modal.style.display = 'none';
+            };
+            
+            // Закрытие при клике вне окна
+            window.onclick = (event) => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            };
+            
+            try {
+                const response = await fetch(`/api/master/cadets?master_id=${masterId}`);
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки данных');
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success || !result.data || result.data.length === 0) {
+                    cadetsList.innerHTML = '<div class="no-cadets">Нет курсантов</div>';
+                    return;
+                }
+                
+                renderCadetsList(result.data);
+            } catch (err) {
+                console.error('Ошибка загрузки списка курсантов:', err);
+                cadetsList.innerHTML = `
+                    <div class="error-message">
+                        Ошибка: ${err.message}
+                        <button class="retry-btn" onclick="loadCadetsList(${masterId})">Попробовать снова</button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Функция для отображения списка курсантов
+        function renderCadetsList(cadets) {
+            const cadetsList = document.getElementById('cadetsList');
+            cadetsList.innerHTML = '';
+            
+            // Создаем заголовок таблицы
+            const header = document.createElement('div');
+            header.className = 'cadet-item cadet-header';
+            header.innerHTML = `
+                <div>ФИО</div>
+                <div>Телефон</div>
+                <div>Часы вождения</div>
+            `;
+            cadetsList.appendChild(header);
+            
+            // Добавляем курсантов
+            cadets.forEach(cadet => {
+                const cadetItem = document.createElement('div');
+                cadetItem.className = 'cadet-item';
+                
+                // Форматируем ФИО
+                const fullName = `${cadet.last_name} ${cadet.first_name} ${cadet.middle_name}`;
+                
+                cadetItem.innerHTML = `
+                    <div>${fullName}</div>
+                    <div>${cadet.phone_number}</div>
+                    <div>${cadet.driving_hours || 0}</div>
+                `;
+                
+                cadetsList.appendChild(cadetItem);
+            });
+        }
+        function toggleDay(dayElement) {
+            dayElement.classList.toggle('expanded');
+        }
+        
+        // Делаем функции глобальными для использования в HTML
+        window.toggleDay = toggleDay;
+        window.reserveSession = reserveSession;
+        window.cancelReservation = cancelReservation;
+        window.cancelBooking = cancelBooking;
+        window.loadCadetsList = loadCadetsList;
+    </script>
+</body>
+</html>

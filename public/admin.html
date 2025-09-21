@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель администратора - Автошкола УГНТУ</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 0; /* Убираем padding у header */
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex; /* Добавляем flex-контейнер */
+            justify-content: space-between; /* Распределяем пространство между элементами */
+            align-items: center; /* Выравниваем по вертикали */
+            height: 60px; /* Фиксированная высота шапки */
+        }
+
+        header h1 {
+            margin: 0;
+            padding: 0 20px;
+            font-size: 24px;
+            line-height: 60px; /* Совпадает с высотой шапки */
+        }
+
+        .logout-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0 15px;
+            margin-right: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            height: 40px; /* Фиксированная высота кнопки */
+            line-height: 40px; /* Центрируем текст по вертикали */
+            transition: background-color 0.3s;
+        }
+
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .action-btn {
+            padding: 5px 10px;
+            margin-right: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .edit-btn {
+            background-color: #f39c12;
+            color: white;
+        }
+        .delete-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .add-btn {
+            background-color: #2ecc71;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            border-radius: 5px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-actions {
+            text-align: right;
+            margin-top: 20px;
+        }
+        .form-actions button {
+            padding: 8px 15px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .save-btn {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .cancel-btn {
+            background-color: #95a5a6;
+            color: white;
+        }
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .report-buttons {
+        display: flex;
+        gap: 10px;
+        margin-right: 20px;
+    }
+    
+    .report-btn {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    
+    .report-btn:hover {
+        background-color: #2980b9;
+    }
+    #reportGroup {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+}
+        
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Автошкола УГНТУ - Панель администратора</h1>
+        <!-- Добавьте этот код в раздел header после кнопки выхода -->
+        <div class="report-buttons">
+            <button class="report-btn" id="generateCadetsReport">Отчет по курсантам</button>
+            <button class="report-btn" id="generateMastersReport">Отчет по мастерам</button>
+        </div>
+        <button class="logout-btn" id="logoutBtn">Выйти</button>
+    </header>
+
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" data-tab="cadets">Курсанты</div>
+            <div class="tab" data-tab="masters">Мастера ПОВ</div>
+            <div class="tab" data-tab="admin">Администраторы</div>
+        </div>
+
+        <!-- Вкладка курсантов -->
+        <div class="tab-content active" id="cadets-tab">
+            <button class="add-btn" id="addCadetBtn">Добавить курсанта</button>
+            <table id="cadetsTable">
+                <thead>
+                    <tr>
+                        <th>ФИО</th>
+                        <th>Телефон</th>
+                        <th>Часы вождения</th>
+                        <th>Мастер</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- Вкладка мастеров -->
+        <div class="tab-content" id="masters-tab">
+            <button class="add-btn" id="addMasterBtn">Добавить мастера</button>
+            <table id="mastersTable">
+                <thead>
+                    <tr>
+                        <th>ФИО</th>
+                        <th>Телефон</th>
+                        <th>Кол-во курсантов</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- Вкладка администраторов -->
+        <div class="tab-content" id="admin-tab">
+            <button class="add-btn" id="addAdminBtn">Добавить администратора</button>
+            <table id="adminTable">
+                <thead>
+                    <tr>
+                        <th>Телефон</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления/редактирования курсанта -->
+    <div id="cadetModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="cadetModalTitle">Добавить курсанта</h2>
+            <form id="cadetForm">
+                <input type="hidden" id="cadetId">
+                <div class="form-group">
+                    <label for="cadetLastName">Фамилия</label>
+                    <input type="text" id="cadetLastName" required>
+                    <div class="error" id="cadetLastNameError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="cadetFirstName">Имя</label>
+                    <input type="text" id="cadetFirstName" required>
+                    <div class="error" id="cadetFirstNameError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="cadetMiddleName">Отчество</label>
+                    <input type="text" id="cadetMiddleName">
+                    <div class="error" id="cadetMiddleNameError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="cadetPhone">Телефон</label>
+                    <input type="text" id="cadetPhone" required>
+                    <div class="error" id="cadetPhoneError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="cadetPassword">Пароль</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="password" id="cadetPassword" style="flex: 1;">
+                        <button type="button" id="togglePassword" style="margin-left: 10px;">👁️</button>
+                    </div>
+                    <div class="error" id="cadetPasswordError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="cadetMaster">Мастер ПОВ</label>
+                    <select id="cadetMaster" required>
+                        <option value="">Выберите мастера</option>
+                    </select>
+                    <div class="error" id="cadetMasterError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="cadetGroup">Группа</label>
+                    <input type="text" id="cadetGroup">
+                    <div class="error" id="cadetGroupError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="cadetHours">Часы вождения</label>
+                    <input type="number" id="cadetHours" min="0" value="0">
+                    <div class="error" id="cadetHoursError"></div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" id="cancelCadetBtn">Отмена</button>
+                    <button type="submit" class="save-btn">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления/редактирования мастера -->
+    <div id="masterModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="masterModalTitle">Добавить мастера</h2>
+            <form id="masterForm">
+                <input type="hidden" id="masterId">
+                <div class="form-group">
+                    <label for="masterLastName">Фамилия</label>
+                    <input type="text" id="masterLastName" required>
+                    <div class="error" id="masterLastNameError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="masterFirstName">Имя</label>
+                    <input type="text" id="masterFirstName" required>
+                    <div class="error" id="masterFirstNameError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="masterMiddleName">Отчество</label>
+                    <input type="text" id="masterMiddleName">
+                    <div class="error" id="masterMiddleNameError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="masterPhone">Телефон</label>
+                    <input type="text" id="masterPhone" required>
+                    <div class="error" id="masterPhoneError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="masterPassword">Пароль</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="password" id="masterPassword" style="flex: 1;">
+                        <button type="button" id="toggleMasterPassword" style="margin-left: 10px;">👁️</button>
+                    </div>
+                    <div class="error" id="masterPasswordError"></div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" id="cancelMasterBtn">Отмена</button>
+                    <button type="submit" class="save-btn">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления/редактирования администратора -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="adminModalTitle">Добавить администратора</h2>
+            <form id="adminForm">
+                <input type="hidden" id="adminId">
+                <div class="form-group">
+                    <label for="adminPhone">Телефон</label>
+                    <input type="text" id="adminPhone" required>
+                    <div class="error" id="adminPhoneError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="adminPassword">Пароль</label>
+                    <input type="password" id="adminPassword" required>
+                    <div class="error" id="adminPasswordError"></div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" id="cancelAdminBtn">Отмена</button>
+                    <button type="submit" class="save-btn">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения удаления -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content" style="width: 400px;">
+            <h2 id="confirmModalTitle">Подтверждение</h2>
+            <p id="confirmModalMessage">Вы уверены, что хотите удалить эту запись?</p>
+            <div class="form-actions">
+                <button type="button" class="cancel-btn" id="confirmCancelBtn">Отмена</button>
+                <button type="button" class="delete-btn" id="confirmDeleteBtn">Удалить</button>
+            </div>
+        </div>
+    </div>
+    
+<!-- Модальное окно отчетов-->
+    <div id="reportPeriodModal" class="modal">
+        <div class="modal-content" style="width: 450px;">
+            <span class="close">&times;</span>
+            <h2>Параметры отчета</h2>
+            <div class="form-group">
+                <label for="reportStartDate">Начальная дата:</label>
+                <input type="date" id="reportStartDate" class="date-input">
+            </div>
+            <div class="form-group">
+                <label for="reportEndDate">Конечная дата:</label>
+                <input type="date" id="reportEndDate" class="date-input">
+            </div>
+            <div class="form-group">
+                <label for="reportMaster">Мастер ПОВ:</label>
+                <select id="reportMaster" class="date-input">
+                    <option value="all">Все мастера</option>
+                    <!-- Мастера будут загружены динамически -->
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="cancel-btn" id="cancelReportBtn">Отмена</button>
+                <button type="button" class="save-btn" id="generateReportBtn">Сформировать</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        let currentReportType = '';
+        let availableGroups = [];
+        // Проверка авторизации
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const role = localStorage.getItem('role');
+            
+            if (!user || role !== 'admin') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Инициализация интерфейса
+            initTabs();
+            loadCadets();
+            loadMasters();
+            loadAdmins();
+            setupEventListeners();
+        });
+
+        // Инициализация вкладок
+        function initTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Удаляем активный класс у всех вкладок и контента
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Добавляем активный класс текущей вкладке и соответствующему контенту
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+        }
+
+        // Загрузка курсантов
+        async function loadCadets() {
+            try {
+                const response = await fetch('/api/admin/cadets');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const tbody = document.querySelector('#cadetsTable tbody');
+                    tbody.innerHTML = '';
+                    
+                    data.forEach(cadet => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${cadet.last_name} ${cadet.first_name} ${cadet.middle_name || ''}</td>
+                            <td>${cadet.phone_number}</td>
+                            <td>${cadet.driving_hours || 0}</td>
+                            <td>${cadet.master_name || 'Не назначен'}</td>
+                            <td>
+                                <button class="action-btn edit-btn" data-id="${cadet.id}">Изменить</button>
+                                <button class="action-btn delete-btn" data-id="${cadet.id}">Удалить</button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                    
+                    // Добавляем обработчики событий для кнопок
+                    document.querySelectorAll('#cadetsTable .edit-btn').forEach(btn => {
+                        btn.addEventListener('click', () => editCadet(btn.getAttribute('data-id')));
+                    });
+                    
+                    document.querySelectorAll('#cadetsTable .delete-btn').forEach(btn => {
+                        btn.addEventListener('click', () => confirmDelete('cadet', btn.getAttribute('data-id')));
+                    });
+                } else {
+                    alert('Ошибка загрузки курсантов: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (err) {
+                console.error('Ошибка при загрузке курсантов:', err);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        // Загрузка мастеров
+        async function loadMasters() {
+            try {
+                const response = await fetch('/api/admin/masters');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const tbody = document.querySelector('#mastersTable tbody');
+                    tbody.innerHTML = '';
+                    
+                    data.forEach(master => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${master.last_name} ${master.first_name} ${master.middle_name || ''}</td>
+                            <td>${master.phone_number}</td>
+                            <td>${master.cadets_count || 0}</td>
+                            <td>
+                                <button class="action-btn edit-btn" data-id="${master.id}">Изменить</button>
+                                <button class="action-btn delete-btn" data-id="${master.id}">Удалить</button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                    
+                    // Добавляем обработчики событий для кнопок
+                    document.querySelectorAll('#mastersTable .edit-btn').forEach(btn => {
+                        btn.addEventListener('click', () => editMaster(btn.getAttribute('data-id')));
+                    });
+                    
+                    document.querySelectorAll('#mastersTable .delete-btn').forEach(btn => {
+                        btn.addEventListener('click', () => confirmDelete('master', btn.getAttribute('data-id')));
+                    });
+                    
+                    // Загружаем мастеров для выпадающего списка
+                    loadMastersForSelect();
+                } else {
+                    alert('Ошибка загрузки мастеров: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (err) {
+                console.error('Ошибка при загрузке мастеров:', err);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        // Загрузка администраторов
+        async function loadAdmins() {
+            try {
+                const response = await fetch('/api/admin/admins');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const tbody = document.querySelector('#adminTable tbody');
+                    tbody.innerHTML = '';
+                    
+                    data.forEach(admin => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${admin.phone_number}</td>
+                            <td>
+                                <button class="action-btn edit-btn" data-id="${admin.id}">Изменить</button>
+                                <button class="action-btn delete-btn" data-id="${admin.id}">Удалить</button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                    
+                    // Добавляем обработчики событий для кнопок
+                    document.querySelectorAll('#adminTable .edit-btn').forEach(btn => {
+                        btn.addEventListener('click', () => editAdmin(btn.getAttribute('data-id')));
+                    });
+                    
+                    document.querySelectorAll('#adminTable .delete-btn').forEach(btn => {
+                        btn.addEventListener('click', () => confirmDelete('admin', btn.getAttribute('data-id')));
+                    });
+                } else {
+                    alert('Ошибка загрузки администраторов: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (err) {
+                console.error('Ошибка при загрузке администраторов:', err);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        // Загрузка мастеров для выпадающего списка
+        async function loadMastersForSelect() {
+            try {
+                const response = await fetch('/api/admin/masters');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const select = document.getElementById('cadetMaster');
+                    select.innerHTML = '<option value="">Выберите мастера</option>';
+                    
+                    data.forEach(master => {
+                        const option = document.createElement('option');
+                        option.value = master.id;
+                        option.textContent = `${master.last_name} ${master.first_name} ${master.middle_name || ''}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (err) {
+                console.error('Ошибка при загрузке мастеров для выпадающего списка:', err);
+            }
+        }
+
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            // Кнопка выхода
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('user');
+                localStorage.removeItem('role');
+                window.location.href = 'index.html';
+            });
+            
+            // Кнопки добавления
+            document.getElementById('addCadetBtn').addEventListener('click', () => {
+                document.getElementById('cadetModalTitle').textContent = 'Добавить курсанта';
+                document.getElementById('cadetId').value = '';
+                document.getElementById('cadetForm').reset();
+                document.getElementById('cadetModal').style.display = 'block';
+            });
+            
+            document.getElementById('addMasterBtn').addEventListener('click', () => {
+                document.getElementById('masterModalTitle').textContent = 'Добавить мастера';
+                document.getElementById('masterId').value = '';
+                document.getElementById('masterForm').reset();
+                document.getElementById('masterModal').style.display = 'block';
+            });
+            
+            document.getElementById('addAdminBtn').addEventListener('click', () => {
+                document.getElementById('adminModalTitle').textContent = 'Добавить администратора';
+                document.getElementById('adminId').value = '';
+                document.getElementById('adminForm').reset();
+                document.getElementById('adminModal').style.display = 'block';
+            });
+            
+            // Кнопки отмены в модальных окнах
+            document.getElementById('cancelCadetBtn').addEventListener('click', () => {
+                document.getElementById('cadetModal').style.display = 'none';
+            });
+            
+            document.getElementById('cancelMasterBtn').addEventListener('click', () => {
+                document.getElementById('masterModal').style.display = 'none';
+            });
+            
+            document.getElementById('cancelAdminBtn').addEventListener('click', () => {
+                document.getElementById('adminModal').style.display = 'none';
+            });
+            
+            // Кнопки закрытия модальных окон
+            document.querySelectorAll('.close').forEach(closeBtn => {
+                closeBtn.addEventListener('click', function() {
+                    this.closest('.modal').style.display = 'none';
+                });
+            });
+            document.getElementById('togglePassword').addEventListener('click', function() {
+                const passwordField = document.getElementById('cadetPassword');
+                if (passwordField.type === 'password') {
+                    passwordField.type = 'text';
+                    this.textContent = '🙈';
+                } else {
+                    passwordField.type = 'password';
+                    this.textContent = '👁️';
+                }
+            }); 
+            // Обработчик для кнопки показа пароля мастера
+            document.getElementById('toggleMasterPassword').addEventListener('click', function() {
+                const passwordField = document.getElementById('masterPassword');
+                if (passwordField.type === 'password') {
+                    passwordField.type = 'text';
+                    this.textContent = '🙈';
+                } else {
+                    passwordField.type = 'password';
+                    this.textContent = '👁️';
+                }
+            });
+            // Формы сохранения
+            document.getElementById('cadetForm').addEventListener('submit', saveCadet);
+            document.getElementById('masterForm').addEventListener('submit', saveMaster);
+            document.getElementById('adminForm').addEventListener('submit', saveAdmin);
+            
+            // Обработчики для модального окна подтверждения
+            document.getElementById('confirmCancelBtn').addEventListener('click', () => {
+                document.getElementById('confirmModal').style.display = 'none';
+            });
+            
+            document.getElementById('confirmDeleteBtn').addEventListener('click', performDelete);
+
+
+            document.getElementById('generateCadetsReport').addEventListener('click', () => {
+                currentReportType = 'cadets';
+                showReportPeriodModal();
+            });
+            
+            document.getElementById('generateMastersReport').addEventListener('click', () => {
+                currentReportType = 'masters';
+                showReportPeriodModal();
+            });
+            
+            document.getElementById('cancelReportBtn').addEventListener('click', () => {
+                document.getElementById('reportPeriodModal').style.display = 'none';
+            });
+            
+            document.getElementById('generateReportBtn').addEventListener('click', generateReport);
+
+        }
+
+        // Редактирование курсанта
+        async function editCadet(id) {
+            try {
+                const response = await fetch(`/api/admin/cadets/${id}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('cadetModalTitle').textContent = 'Редактировать курсанта';
+                    document.getElementById('cadetId').value = data.id;
+                    document.getElementById('cadetLastName').value = data.last_name;
+                    document.getElementById('cadetFirstName').value = data.first_name;
+                    document.getElementById('cadetMiddleName').value = data.middle_name || '';
+                    document.getElementById('cadetPhone').value = data.phone_number;
+                    document.getElementById('cadetPassword').value = data.password; // Пароль в открытом виде
+                    document.getElementById('cadetPassword').type = 'text'; // Показываем как обычный текст
+                    document.getElementById('cadetMaster').value = data.master_id || '';
+                    document.getElementById('cadetGroup').value = data.group_code || '';
+                    document.getElementById('cadetHours').value = data.driving_hours || 0;
+                    
+                    document.getElementById('cadetModal').style.display = 'block';
+                }
+            } catch (err) {
+                console.error('Ошибка при загрузке данных курсанта:', err);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        // Редактирование мастера
+        async function editMaster(id) {
+            try {
+                const response = await fetch(`/api/admin/masters/${id}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('masterModalTitle').textContent = 'Редактировать мастера';
+                    document.getElementById('masterId').value = data.id;
+                    document.getElementById('masterLastName').value = data.last_name;
+                    document.getElementById('masterFirstName').value = data.first_name;
+                    document.getElementById('masterMiddleName').value = data.middle_name || '';
+                    document.getElementById('masterPhone').value = data.phone_number;
+                    document.getElementById('masterPassword').value = data.password; // Пароль в открытом виде
+                    document.getElementById('masterPassword').type = 'text'; // Показываем как обычный текст
+                    document.getElementById('toggleMasterPassword').textContent = '🙈'; // Устанавливаем иконку "скрыть"
+                    
+                    document.getElementById('masterModal').style.display = 'block';
+                }
+            } catch (err) {
+                console.error('Ошибка при загрузке данных мастера:', err);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        // Редактирование администратора
+        async function editAdmin(id) {
+            try {
+                const response = await fetch(`/api/admin/admins/${id}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('adminModalTitle').textContent = 'Редактировать администратора';
+                    document.getElementById('adminId').value = data.id;
+                    document.getElementById('adminPhone').value = data.phone_number;
+                    document.getElementById('adminPassword').value = '';
+                    
+                    document.getElementById('adminModal').style.display = 'block';
+                } else {
+                    alert('Ошибка загрузки данных администратора: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (err) {
+                console.error('Ошибка при загрузке данных администратора:', err);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        // Сохранение курсанта
+        async function saveCadet(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('cadetId').value;
+            const lastName = document.getElementById('cadetLastName').value.trim();
+            const firstName = document.getElementById('cadetFirstName').value.trim();
+            const middleName = document.getElementById('cadetMiddleName').value.trim();
+            const phone = document.getElementById('cadetPhone').value.trim();
+            const password = document.getElementById('cadetPassword').value.trim();
+            const masterId = document.getElementById('cadetMaster').value;
+            const group = document.getElementById('cadetGroup').value.trim();
+            const hours = document.getElementById('cadetHours').value;
+            
+            // Валидация
+            let isValid = true;
+            
+            if (!lastName) {
+                document.getElementById('cadetLastNameError').textContent = 'Введите фамилию';
+                isValid = false;
+            } else {
+                document.getElementById('cadetLastNameError').textContent = '';
+            }
+            
+            if (!firstName) {
+                document.getElementById('cadetFirstNameError').textContent = 'Введите имя';
+                isValid = false;
+            } else {
+                document.getElementById('cadetFirstNameError').textContent = '';
+            }
+            
+            if (!phone) {
+                document.getElementById('cadetPhoneError').textContent = 'Введите телефон';
+                isValid = false;
+            } else {
+                document.getElementById('cadetPhoneError').textContent = '';
+            }
+            
+            if (!password && !id) {
+                document.getElementById('cadetPasswordError').textContent = 'Введите пароль';
+                isValid = false;
+            } else {
+                document.getElementById('cadetPasswordError').textContent = '';
+            }
+            
+            if (!masterId) {
+                document.getElementById('cadetMasterError').textContent = 'Выберите мастера';
+                isValid = false;
+            } else {
+                document.getElementById('cadetMasterError').textContent = '';
+            }
+            
+            if (!isValid) return;
+            
+            try {
+                const url = id ? `/api/admin/cadets/${id}` : '/api/admin/cadets';
+                const method = id ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        last_name: lastName,
+                        first_name: firstName,
+                        middle_name: middleName,
+                        phone_number: phone,
+                        password: password || undefined,
+                        master_id: masterId,
+                        group_code: group || undefined,
+                        driving_hours: hours || 0
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('cadetModal').style.display = 'none';
+                    loadCadets();
+                } else {
+                    alert('Ошибка сохранения: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (err) {
+                console.error('Ошибка при сохранении курсанта:', err);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        // Сохранение мастера
+        async function saveMaster(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('masterId').value;
+            const lastName = document.getElementById('masterLastName').value.trim();
+            const firstName = document.getElementById('masterFirstName').value.trim();
+            const middleName = document.getElementById('masterMiddleName').value.trim();
+            const phone = document.getElementById('masterPhone').value.trim();
+            const password = document.getElementById('masterPassword').value.trim();
+            
+            // Валидация
+            let isValid = true;
+            
+            if (!lastName) {
+                document.getElementById('masterLastNameError').textContent = 'Введите фамилию';
+                isValid = false;
+            } else {
+                document.getElementById('masterLastNameError').textContent = '';
+            }
+            
+            if (!firstName) {
+                document.getElementById('masterFirstNameError').textContent = 'Введите имя';
+                isValid = false;
+            } else {
+                document.getElementById('masterFirstNameError').textContent = '';
+            }
+            
+            if (!phone) {
+                document.getElementById('masterPhoneError').textContent = 'Введите телефон';
+                isValid = false;
+            } else {
+                document.getElementById('masterPhoneError').textContent = '';
+            }
+            
+            if (!password && !id) {
+                document.getElementById('masterPasswordError').textContent = 'Введите пароль';
+                isValid = false;
+            } else {
+                document.getElementById('masterPasswordError').textContent = '';
+            }
+            
+            if (!isValid) return;
+            
+            try {
+                const url = id ? `/api/admin/masters/${id}` : '/api/admin/masters';
+                const method = id ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        last_name: lastName,
+                        first_name: firstName,
+                        middle_name: middleName,
+                        phone_number: phone,
+                        password: password || undefined
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('masterModal').style.display = 'none';
+                    loadMasters();
+                } else {
+                    alert('Ошибка сохранения: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (err) {
+                console.error('Ошибка при сохранении мастера:', err);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        // Сохранение администратора
+        async function saveAdmin(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('adminId').value;
+            const phone = document.getElementById('adminPhone').value.trim();
+            const password = document.getElementById('adminPassword').value.trim();
+            
+            // Валидация
+            let isValid = true;
+            
+            if (!phone) {
+                document.getElementById('adminPhoneError').textContent = 'Введите телефон';
+                isValid = false;
+            } else {
+                document.getElementById('adminPhoneError').textContent = '';
+            }
+            
+            if (!password && !id) {
+                document.getElementById('adminPasswordError').textContent = 'Введите пароль';
+                isValid = false;
+            } else {
+                document.getElementById('adminPasswordError').textContent = '';
+            }
+            
+            if (!isValid) return;
+            
+            try {
+                const url = id ? `/api/admin/admins/${id}` : '/api/admin/admins';
+                const method = id ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone_number: phone,
+                        password: password || undefined
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('adminModal').style.display = 'none';
+                    loadAdmins();
+                } else {
+                    alert('Ошибка сохранения: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (err) {
+                console.error('Ошибка при сохранении администратора:', err);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        // Подтверждение удаления
+        let currentDeleteType = '';
+        let currentDeleteId = '';
+        
+        function confirmDelete(type, id) {
+            currentDeleteType = type;
+            currentDeleteId = id;
+            
+            const titles = {
+                'cadet': 'курсанта',
+                'master': 'мастера',
+                'admin': 'администратора'
+            };
+            
+            document.getElementById('confirmModalTitle').textContent = `Удаление ${titles[type]}`;
+            document.getElementById('confirmModalMessage').textContent = `Вы уверены, что хотите удалить этого ${titles[type]}?`;
+            document.getElementById('confirmModal').style.display = 'block';
+        }
+
+        // Выполнение удаления
+        async function performDelete() {
+            document.getElementById('confirmModal').style.display = 'none';
+            
+            try {
+                const url = `/api/admin/${currentDeleteType}s/${currentDeleteId}`;
+                
+                const response = await fetch(url, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Перезагружаем соответствующий список
+                    if (currentDeleteType === 'cadet') {
+                        loadCadets();
+                    } else if (currentDeleteType === 'master') {
+                        loadMasters();
+                    } else if (currentDeleteType === 'admin') {
+                        loadAdmins();
+                    }
+                } else {
+                    alert('Ошибка удаления: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (err) {
+                console.error('Ошибка при удалении:', err);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        // Закрытие модальных окон при клике вне их
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        });
+
+
+
+
+
+
+        async function showReportPeriodModal() {
+            // Установка дат по умолчанию
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            
+            document.getElementById('reportStartDate').value = formatDateForInput(firstDay);
+            document.getElementById('reportEndDate').value = formatDateForInput(lastDay);
+            
+            // Загружаем список мастеров
+            await loadMastersForReport();
+            
+            document.getElementById('reportPeriodModal').style.display = 'block';
+        }
+
+        async function loadMastersForReport() {
+            try {
+                const response = await fetch('/api/admin/masters');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const select = document.getElementById('reportMaster');
+                    select.innerHTML = '<option value="all">Все мастера</option>';
+                    
+                    data.forEach(master => {
+                        const option = document.createElement('option');
+                        option.value = master.id;
+                        option.textContent = `${master.last_name} ${master.first_name} ${master.middle_name || ''}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (err) {
+                console.error('Ошибка загрузки мастеров:', err);
+            }
+        }
+        
+        function formatDateForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        async function generateReport() {
+            const startDate = document.getElementById('reportStartDate').value;
+            const endDate = document.getElementById('reportEndDate').value;
+            const masterId = document.getElementById('reportMaster').value;
+            
+            if (!startDate || !endDate) {
+                alert('Пожалуйста, укажите обе даты');
+                return;
+            }
+            
+            try {
+                let url = `/api/admin/reports/cadets?start_date=${startDate}&end_date=${endDate}`;
+                if (masterId !== 'all') {
+                    url += `&master_id=${encodeURIComponent(masterId)}`;
+                }
+                    
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Ошибка сервера');
+                }
+                
+                // Получаем blob с Excel файлом
+                const blob = await response.blob();
+                
+                // Создаем ссылку для скачивания
+                const urlObject = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = urlObject;
+                
+                // Формируем имя файла
+                let reportName = `Отчет_по_курсантам_${startDate}_${endDate}`;
+                if (masterId !== 'all') {
+                    const masterSelect = document.getElementById('reportMaster');
+                    const masterName = masterSelect.options[masterSelect.selectedIndex].text;
+                    reportName += `_${masterName.replace(/\s+/g, '_')}`;
+                }
+                reportName += '.xlsx';
+                
+                a.download = reportName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(urlObject);
+                
+                // Закрываем модальное окно
+                document.getElementById('reportPeriodModal').style.display = 'none';
+                
+            } catch (err) {
+                console.error('Ошибка при формировании отчета:', err);
+                alert(err.message);
+            }
+        }
+    </script>
+</body>
+</html>
