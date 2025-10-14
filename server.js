@@ -1606,7 +1606,7 @@ app.post('/api/generate-telegram-token', async (req, res) => {
 
     try {
         const token = require('crypto').randomBytes(32).toString('hex');
-        const table = role === 'master' ? 'Masters' : 'Cadets';
+        const table = role === 'master' ? 'masters' : 'cadets';
         
         // Проверяем существование пользователя
         const userCheck = await pool.query(
