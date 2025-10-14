@@ -133,7 +133,7 @@ app.get('/api/available-sessions', async (req, res) => {
 
         const master_id = cadetData.rows[0].master_id;
 
-        // Получаем доступные занятия (теперь из одной таблицы DrivingSessions)
+        // Получаем доступные занятия (теперь из одной таблицы drivingsessions)
         const now = new Date();
         const result = await pool.query(
             `SELECT 
@@ -404,7 +404,7 @@ app.get('/api/master/schedule', async (req, res) => {
                 c.middle_name as cadet_middle_name,
                 to_char(ds.session_date, 'Day') as day_name
             FROM drivingsessions ds
-            LEFT JOIN Cadets c ON ds.cadet_id = c.id
+            LEFT JOIN cadets c ON ds.cadet_id = c.id
             WHERE ds.master_id = $1
             AND ds.session_date BETWEEN $2 AND $3
             ORDER BY ds.session_date, ds.session_time
@@ -468,7 +468,7 @@ app.post('/api/master/reserve-session', async (req, res) => {
 
         // Проверяем, что занятие свободно и принадлежит мастеру
         const session = await pool.query(
-            `SELECT id FROM DrivingSessions 
+            `SELECT id FROM drivingsessions 
              WHERE id = $1 
              AND master_id = $2 
              AND status = 'free'`,
@@ -484,7 +484,7 @@ app.post('/api/master/reserve-session', async (req, res) => {
 
         // Резервируем занятие
         await pool.query(
-            `UPDATE DrivingSessions 
+            `UPDATE drivingsessions 
              SET status = 'reserved', cadet_id = NULL 
              WHERE id = $1`,
             [session_id]
@@ -516,7 +516,7 @@ app.post('/api/master/cancel-reservation', async (req, res) => {
 
         // Проверяем, что занятие зарезервировано и принадлежит мастеру
         const session = await pool.query(
-            `SELECT id FROM DrivingSessions 
+            `SELECT id FROM drivingsessions 
              WHERE id = $1 
              AND master_id = $2 
              AND status = 'reserved'`,
@@ -532,7 +532,7 @@ app.post('/api/master/cancel-reservation', async (req, res) => {
 
         // Возвращаем занятие в статус "свободно"
         await pool.query(
-            `UPDATE DrivingSessions 
+            `UPDATE drivingsessions 
              SET status = 'free', cadet_id = NULL 
              WHERE id = $1`,
             [session_id]
@@ -565,9 +565,9 @@ app.post('/api/master/cancel-booking', async (req, res) => {
                 c.first_name as cadet_first_name,
                 m.last_name as master_last_name,
                 m.first_name as master_first_name
-             FROM DrivingSessions ds
-             LEFT JOIN Cadets c ON ds.cadet_id = c.id
-             LEFT JOIN Masters m ON ds.master_id = m.id
+             FROM drivingsessions ds
+             LEFT JOIN cadets c ON ds.cadet_id = c.id
+             LEFT JOIN masters m ON ds.master_id = m.id
              WHERE ds.id = $1 
              AND ds.master_id = $2 
              AND ds.status = 'booked'`,
@@ -584,7 +584,7 @@ app.post('/api/master/cancel-booking', async (req, res) => {
         const sessionData = session.rows[0];
 
         await pool.query(
-            `UPDATE DrivingSessions 
+            `UPDATE drivingsessions 
              SET status = 'free', cadet_id = NULL 
              WHERE id = $1`,
             [session_id]
@@ -630,7 +630,7 @@ app.get('/api/master/available-sessions', async (req, res) => {
                 session_time,
                 to_char(session_date, 'YYYY-MM-DD') as formatted_date,
                 to_char(session_date, 'Day') as day_name
-             FROM DrivingSessions
+             FROM drivingsessions
              WHERE master_id = $1
              AND status = 'free'
              AND session_date >= CURRENT_DATE
@@ -678,7 +678,7 @@ app.get('/api/master/cadets', async (req, res) => {
                 middle_name,
                 phone_number,
                 driving_hours
-             FROM Cadets
+             FROM cadets
              WHERE master_id = $1
              ORDER BY last_name, first_name`,
             [master_id]
@@ -720,7 +720,7 @@ app.get('/api/master/generate-report', async (req, res) => {
                 c.phone_number as cadet_phone,
                 COUNT(ds.id) FILTER (WHERE ds.status = 'completed') as driving_hours
              FROM Cadets c
-             LEFT JOIN DrivingSessions ds ON c.id = ds.cadet_id
+             LEFT JOIN drivingsessions ds ON c.id = ds.cadet_id
                 AND ds.session_date BETWEEN $2 AND $3
              WHERE c.master_id = $1
              GROUP BY c.id
@@ -804,7 +804,7 @@ app.get('/api/session-info', async (req, res) => {
                 status,
                 master_id,
                 cadet_id
-             FROM DrivingSessions 
+             FROM drivingsessions 
              WHERE id = $1`,
             [id]
         );
@@ -838,8 +838,8 @@ app.get('/api/admin/cadets', async (req, res) => {
                 c.group_code,
                 c.master_id,
                 CONCAT(m.last_name, ' ', m.first_name, ' ', COALESCE(m.middle_name, '')) as master_name
-            FROM Cadets c
-            LEFT JOIN Masters m ON c.master_id = m.id
+            FROM cadets c
+            LEFT JOIN masters m ON c.master_id = m.id
             ORDER BY c.last_name, c.first_name
         `);
         res.json(result.rows);
@@ -852,7 +852,7 @@ app.get('/api/admin/cadets', async (req, res) => {
 app.get('/api/admin/cadets/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await pool.query('SELECT * FROM Cadets WHERE id = $1', [id]);
+        const result = await pool.query('SELECT * FROM cadets WHERE id = $1', [id]);
         
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Курсант не найден' });
@@ -884,13 +884,13 @@ app.post('/api/admin/cadets', async (req, res) => {
         } = req.body;
         
         // Проверка существования мастера
-        const masterCheck = await pool.query('SELECT id FROM Masters WHERE id = $1', [master_id]);
+        const masterCheck = await pool.query('SELECT id FROM masters WHERE id = $1', [master_id]);
         if (masterCheck.rows.length === 0) {
             return res.status(400).json({ error: 'Мастер не найден' });
         }
         
         // Проверка уникальности телефона
-        const phoneCheck = await pool.query('SELECT id FROM Cadets WHERE phone_number = $1', [phone_number]);
+        const phoneCheck = await pool.query('SELECT id FROM cadets WHERE phone_number = $1', [phone_number]);
         if (phoneCheck.rows.length > 0) {
             return res.status(400).json({ error: 'Телефон уже используется' });
         }
@@ -951,7 +951,7 @@ app.put('/api/admin/cadets/:id', async (req, res) => {
         
         // Обновляем данные (всегда используем newPassword)
         const result = await pool.query(
-            `UPDATE Cadets SET 
+            `UPDATE cadets SET 
                 last_name = $1, 
                 first_name = $2, 
                 middle_name = $3, 
@@ -986,7 +986,7 @@ app.delete('/api/admin/cadets/:id', async (req, res) => {
         const { id } = req.params;
         
         const result = await pool.query(
-            'DELETE FROM Cadets WHERE id = $1 RETURNING id',
+            'DELETE FROM cadets WHERE id = $1 RETURNING id',
             [id]
         );
         
@@ -1012,8 +1012,8 @@ app.get('/api/admin/masters', async (req, res) => {
                 m.middle_name,
                 m.phone_number,
                 COUNT(c.id) as cadets_count
-            FROM Masters m
-            LEFT JOIN Cadets c ON m.id = c.master_id
+            FROM masters m
+            LEFT JOIN cadets c ON m.id = c.master_id
             GROUP BY m.id
             ORDER BY m.last_name, m.first_name
         `);
@@ -1027,7 +1027,7 @@ app.get('/api/admin/masters', async (req, res) => {
 app.get('/api/admin/masters/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await pool.query('SELECT * FROM Masters WHERE id = $1', [id]);
+        const result = await pool.query('SELECT * FROM masters WHERE id = $1', [id]);
         
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Мастер не найден' });
@@ -1051,13 +1051,13 @@ app.post('/api/admin/masters', async (req, res) => {
         } = req.body;
         
         // Проверка уникальности телефона
-        const phoneCheck = await pool.query('SELECT id FROM Masters WHERE phone_number = $1', [phone_number]);
+        const phoneCheck = await pool.query('SELECT id FROM masters WHERE phone_number = $1', [phone_number]);
         if (phoneCheck.rows.length > 0) {
             return res.status(400).json({ error: 'Телефон уже используется' });
         }
         
         const result = await pool.query(
-            `INSERT INTO Masters (
+            `INSERT INTO masters (
                 last_name, 
                 first_name, 
                 middle_name, 
@@ -1092,14 +1092,14 @@ app.put('/api/admin/masters/:id', async (req, res) => {
         } = req.body;
         
         // Проверка существования мастера
-        const masterCheck = await pool.query('SELECT id FROM Masters WHERE id = $1', [id]);
+        const masterCheck = await pool.query('SELECT id FROM masters WHERE id = $1', [id]);
         if (masterCheck.rows.length === 0) {
             return res.status(404).json({ error: 'Мастер не найден' });
         }
         
         // Проверка уникальности телефона
         const phoneCheck = await pool.query(
-            'SELECT id FROM Masters WHERE phone_number = $1 AND id != $2', 
+            'SELECT id FROM masters WHERE phone_number = $1 AND id != $2', 
             [phone_number, id]
         );
         if (phoneCheck.rows.length > 0) {
@@ -1108,14 +1108,14 @@ app.put('/api/admin/masters/:id', async (req, res) => {
         
         // Обновляем данные
         const query = password 
-            ? `UPDATE Masters SET 
+            ? `UPDATE masters SET 
                 last_name = $1, 
                 first_name = $2, 
                 middle_name = $3, 
                 phone_number = $4, 
                 password = $5
                WHERE id = $6 RETURNING *`
-            : `UPDATE Masters SET 
+            : `UPDATE masters SET 
                 last_name = $1, 
                 first_name = $2, 
                 middle_name = $3, 
@@ -1153,7 +1153,7 @@ app.delete('/api/admin/masters/:id', async (req, res) => {
         
         // Проверяем, есть ли у мастера курсанты
         const cadetsCheck = await pool.query(
-            'SELECT id FROM Cadets WHERE master_id = $1 LIMIT 1',
+            'SELECT id FROM cadets WHERE master_id = $1 LIMIT 1',
             [id]
         );
         
@@ -1164,7 +1164,7 @@ app.delete('/api/admin/masters/:id', async (req, res) => {
         }
         
         const result = await pool.query(
-            'DELETE FROM Masters WHERE id = $1 RETURNING id',
+            'DELETE FROM masters WHERE id = $1 RETURNING id',
             [id]
         );
         
@@ -1182,7 +1182,7 @@ app.delete('/api/admin/masters/:id', async (req, res) => {
 // Маршруты для работы с администраторами
 app.get('/api/admin/admins', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM Admin ORDER BY id');
+        const result = await pool.query('SELECT * FROM admin ORDER BY id');
         res.json(result.rows);
     } catch (err) {
         console.error(err);
@@ -1193,7 +1193,7 @@ app.get('/api/admin/admins', async (req, res) => {
 app.get('/api/admin/admins/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await pool.query('SELECT * FROM Admin WHERE id = $1', [id]);
+        const result = await pool.query('SELECT * FROM admin WHERE id = $1', [id]);
         
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Администратор не найден' });
@@ -1211,13 +1211,13 @@ app.post('/api/admin/admins', async (req, res) => {
         const { phone_number, password } = req.body;
         
         // Проверка уникальности телефона
-        const phoneCheck = await pool.query('SELECT id FROM Admin WHERE phone_number = $1', [phone_number]);
+        const phoneCheck = await pool.query('SELECT id FROM admin WHERE phone_number = $1', [phone_number]);
         if (phoneCheck.rows.length > 0) {
             return res.status(400).json({ error: 'Телефон уже используется' });
         }
         
         const result = await pool.query(
-            'INSERT INTO Admin (phone_number, password) VALUES ($1, $2) RETURNING *',
+            'INSERT INTO admin (phone_number, password) VALUES ($1, $2) RETURNING *',
             [phone_number, password]
         );
         
@@ -1234,14 +1234,14 @@ app.put('/api/admin/admins/:id', async (req, res) => {
         const { phone_number, password } = req.body;
         
         // Проверка существования администратора
-        const adminCheck = await pool.query('SELECT id FROM Admin WHERE id = $1', [id]);
+        const adminCheck = await pool.query('SELECT id FROM admin WHERE id = $1', [id]);
         if (adminCheck.rows.length === 0) {
             return res.status(404).json({ error: 'Администратор не найден' });
         }
         
         // Проверка уникальности телефона
         const phoneCheck = await pool.query(
-            'SELECT id FROM Admin WHERE phone_number = $1 AND id != $2', 
+            'SELECT id FROM admin WHERE phone_number = $1 AND id != $2', 
             [phone_number, id]
         );
         if (phoneCheck.rows.length > 0) {
@@ -1250,8 +1250,8 @@ app.put('/api/admin/admins/:id', async (req, res) => {
         
         // Обновляем данные
         const query = password 
-            ? 'UPDATE Admin SET phone_number = $1, password = $2 WHERE id = $3 RETURNING *'
-            : 'UPDATE Admin SET phone_number = $1 WHERE id = $2 RETURNING *';
+            ? 'UPDATE admin SET phone_number = $1, password = $2 WHERE id = $3 RETURNING *'
+            : 'UPDATE admin SET phone_number = $1 WHERE id = $2 RETURNING *';
         
         const params = password 
             ? [phone_number, password, id]
@@ -1270,7 +1270,7 @@ app.delete('/api/admin/admins/:id', async (req, res) => {
         const { id } = req.params;
         
         // Проверяем, не пытаемся ли удалить последнего администратора
-        const adminsCount = await pool.query('SELECT COUNT(*) FROM Admin');
+        const adminsCount = await pool.query('SELECT COUNT(*) FROM admin');
         if (adminsCount.rows[0].count <= 1) {
             return res.status(400).json({ 
                 error: 'Нельзя удалить последнего администратора' 
@@ -1278,7 +1278,7 @@ app.delete('/api/admin/admins/:id', async (req, res) => {
         }
         
         const result = await pool.query(
-            'DELETE FROM Admin WHERE id = $1 RETURNING id',
+            'DELETE FROM admin WHERE id = $1 RETURNING id',
             [id]
         );
         
@@ -1307,7 +1307,7 @@ async function autoCompleteSessions() {
                 cadet_id,
                 session_date,
                 session_time
-            FROM DrivingSessions
+            FROM drivingsessions
             WHERE status = 'booked'
             AND (
                 (session_date + session_time) < (NOW() - INTERVAL '1 hour')
@@ -1328,7 +1328,7 @@ async function autoCompleteSessions() {
 
         // Обновление  статуса занятий
         const updateSessionsQuery = `
-            UPDATE DrivingSessions
+            UPDATE drivingsessions
             SET status = 'completed'
             WHERE id = ANY($1)
         `;
@@ -1337,7 +1337,7 @@ async function autoCompleteSessions() {
         // Начисление часов курсантам (только если cadet_id не NULL)
         if (cadetIds.length > 0) {
             const updateCadetsQuery = `
-                UPDATE Cadets
+                UPDATE cadets
                 SET driving_hours = driving_hours + 1
                 WHERE id = ANY($1)
             `;
@@ -1366,7 +1366,7 @@ app.get('/api/admin/cadets/groups', async (req, res) => {
     try {
         const result = await pool.query(
             `SELECT DISTINCT group_code 
-             FROM Cadets 
+             FROM cadets 
              WHERE group_code IS NOT NULL AND group_code != ''
              ORDER BY group_code`
         );
@@ -1404,11 +1404,11 @@ app.get('/api/admin/reports/cadets', async (req, res) => {
                 m.last_name as master_last_name,
                 m.first_name as master_first_name,
                 m.middle_name as master_middle_name
-            FROM Cadets c
-            LEFT JOIN DrivingSessions ds ON c.id = ds.cadet_id 
+            FROM cadets c
+            LEFT JOIN drivingsessions ds ON c.id = ds.cadet_id 
                 AND ds.status = 'completed'
                 AND ds.session_date BETWEEN $1 AND $2
-            LEFT JOIN Masters m ON c.master_id = m.id
+            LEFT JOIN masters m ON c.master_id = m.id
         `;
         
         // Добавляем условие для мастера, если он указан
@@ -1526,9 +1526,9 @@ app.get('/api/admin/reports/masters', async (req, res) => {
                 m.middle_name,
                 m.phone_number,
                 COUNT(ds.id) as conducted_sessions,
-                (SELECT COUNT(*) FROM Cadets WHERE master_id = m.id) as cadets_count
-             FROM Masters m
-             LEFT JOIN DrivingSessions ds ON m.id = ds.master_id 
+                (SELECT COUNT(*) FROM cadets WHERE master_id = m.id) as cadets_count
+             FROM masters m
+             LEFT JOIN drivingsessions ds ON m.id = ds.master_id 
                 AND ds.status = 'completed'
                 AND ds.session_date BETWEEN $1 AND $2
              GROUP BY m.id
