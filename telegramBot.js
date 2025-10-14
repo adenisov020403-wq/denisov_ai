@@ -65,12 +65,12 @@ bot.command('start', async (ctx) => {
                     WHEN u.role = 'cadet' THEN c.telegram_chat_id
                 END as telegram_chat_id
              FROM (
-                 SELECT id, 'master' as role, phone_number FROM Masters WHERE telegram_token = $1
+                 SELECT id, 'master' as role, phone_number FROM masters WHERE telegram_token = $1
                  UNION
-                 SELECT id, 'cadet' as role, phone_number FROM Cadets WHERE telegram_token = $1
+                 SELECT id, 'cadet' as role, phone_number FROM cadets WHERE telegram_token = $1
              ) u
-             LEFT JOIN Masters m ON u.role = 'master' AND u.id = m.id
-             LEFT JOIN Cadets c ON u.role = 'cadet' AND u.id = c.id
+             LEFT JOIN masters m ON u.role = 'master' AND u.id = m.id
+             LEFT JOIN cadets c ON u.role = 'cadet' AND u.id = c.id
              WHERE (
                  (u.role = 'master' AND m.telegram_chat_id IS NULL) OR
                  (u.role = 'cadet' AND c.telegram_chat_id IS NULL)
@@ -87,8 +87,8 @@ bot.command('start', async (ctx) => {
 
         // Сохраняем chat_id в базу данных
         const updateQuery = user.role === 'master' 
-            ? 'UPDATE Masters SET telegram_chat_id = $1, telegram_token = NULL WHERE id = $2'
-            : 'UPDATE Cadets SET telegram_chat_id = $1, telegram_token = NULL WHERE id = $2';
+            ? 'UPDATE masters SET telegram_chat_id = $1, telegram_token = NULL WHERE id = $2'
+            : 'UPDATE cadets SET telegram_chat_id = $1, telegram_token = NULL WHERE id = $2';
         
         await pool.query(updateQuery, [chatId, user.id]);
 
@@ -109,8 +109,8 @@ async function sendNotification(userId, role, message) {
         
         if (!chatId) {
             const query = role === 'master' 
-                ? 'SELECT telegram_chat_id FROM Masters WHERE id = $1 AND telegram_chat_id IS NOT NULL'
-                : 'SELECT telegram_chat_id FROM Cadets WHERE id = $1 AND telegram_chat_id IS NOT NULL';
+                ? 'SELECT telegram_chat_id FROM masters WHERE id = $1 AND telegram_chat_id IS NOT NULL'
+                : 'SELECT telegram_chat_id FROM cadets WHERE id = $1 AND telegram_chat_id IS NOT NULL';
             
             const result = await pool.query(query, [userId]);
             
@@ -149,9 +149,9 @@ async function checkUpcomingSessions() {
                 m.id as master_id,
                 m.last_name as master_last_name,
                 m.first_name as master_first_name
-             FROM DrivingSessions ds
-             LEFT JOIN Cadets c ON ds.cadet_id = c.id
-             LEFT JOIN Masters m ON ds.master_id = m.id
+             FROM drivingsessions ds
+             LEFT JOIN сadets c ON ds.cadet_id = c.id
+             LEFT JOIN masters m ON ds.master_id = m.id
              WHERE ds.status = 'booked'
              AND ds.session_date = $1
              AND ds.session_time BETWEEN $2 AND $3`,
