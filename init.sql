@@ -58,36 +58,20 @@ INSERT INTO cadets (phone_number, password, last_name, first_name, middle_name, 
 
 -- ПРОСТОЕ создание расписания на 6 месяцев С выходными днями
 INSERT INTO drivingsessions (session_date, session_time, master_id, status)
-SELECT 
+SELECT
     date_seq::date,
-    time_seq::time,
+    time_seq,
     m.id,
     'free'
-FROM 
+FROM
     generate_series(
-        CURRENT_DATE, 
+        CURRENT_DATE,
         CURRENT_DATE + 180,  -- 6 месяцев = ~180 дней
         '1 day'::interval
     ) as date_seq,
     (VALUES 
-        ('09:00'), ('10:00'), ('11:00'), ('12:00'),
-        ('14:00'), ('15:00'), ('16:00'), ('17:00')
-    ) as time_seq,
+        ('09:00'::time), ('10:00'::time), ('11:00'::time), ('12:00'::time),
+        ('14:00'::time), ('15:00'::time), ('16:00'::time), ('17:00'::time)
+    ) as time_seq(time_seq),
     masters m
-WHERE 
-    -- Рабочие дни: понедельник-пятница
-    EXTRACT(DOW FROM date_seq) IN (1, 2, 3, 4, 5)
-    -- Исключаем праздничные дни
-    AND date_seq::text NOT IN (
-        '2025-12-31', '2026-01-01', '2026-01-02', '2026-01-03', '2026-01-04', 
-        '2026-01-05', '2026-01-06', '2026-01-07', '2026-01-08', '2026-01-09', 
-        '2026-01-10', '2026-01-11', '2026-02-23', '2026-03-09', '2026-05-01', 
-        '2026-05-11', '2026-06-12', '2026-11-04'
-    )
-    AND NOT EXISTS (
-        SELECT 1 FROM drivingsessions ds 
-        WHERE ds.session_date = date_seq::date 
-        AND ds.session_time = time_seq::time::time
-        AND ds.master_id = m.id
-    );
 
