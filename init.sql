@@ -56,33 +56,38 @@ INSERT INTO cadets (phone_number, password, last_name, first_name, middle_name, 
 
 
 
--- Упрощенная функция для создания расписания (быстрая)
-CREATE OR REPLACE FUNCTION generate_master_schedule_fast()
-RETURNS void AS $$
-BEGIN
-    -- Создаем расписание на 1.5 года для всех инструкторов
-    -- Используем более быстрый подход с одним INSERT
-    INSERT INTO drivingsessions (session_date, session_time, master_id, status)
-    SELECT 
-        date_seq::date,
-        time_seq::time,
-        master_id,
-        'free'
-    FROM 
-        generate_series('2025-10-17'::date, '2026-12-31'::date, '1 day'::interval) as date_seq,
-        (VALUES ('09:00'), ('10:00'), ('11:00'), ('12:00'), ('14:00'), ('15:00'), ('16:00'), ('17:00')) as time_seq,
-        (SELECT id FROM masters) as master_id
-    WHERE 
-        EXTRACT(DOW FROM date_seq) NOT IN (0, 6) -- не суббота/воскресенье
-        AND date_seq::text NOT IN (
-            '2025-12-31', '2026-01-01', '2026-01-02', '2026-01-03', '2026-01-04', 
-            '2026-01-05', '2026-01-06', '2026-01-07', '2026-01-08', '2026-01-09', 
-            '2026-01-10', '2026-01-11', '2026-02-23', '2026-03-09', '2026-05-01', 
-            '2026-05-11', '2026-06-12', '2026-11-04'
-        );
-END;
-$$ LANGUAGE plpgsql;
-
--- Выполняем функцию создания расписания
-SELECT generate_master_schedule_fast();
+-- ПРОСТОЕ создание расписания на 6 месяцев С выходными днями
+INSERT INTO drivingsessions (session_date, session_time, master_id, status)
+SELECT 
+    date_seq::date,
+    time_seq::time,
+    m.id,
+    'free'
+FROM 
+    generate_series(
+        CURRENT_DATE, 
+        CURRENT_DATE + 180,  -- 6 месяцев = ~180 дней
+        '1 day'::interval
+    ) as date_seq,
+    (VALUES 
+        ('09:00'), ('10:00'), ('11:00'), ('12:00'),
+        ('14:00'), ('15:00'), ('16:00'), ('17:00')
+    ) as time_seq,
+    masters m
+WHERE 
+    -- Рабочие дни: понедельник-пятница
+    EXTRACT(DOW FROM date_seq) IN (1, 2, 3, 4, 5)
+    -- Исключаем праздничные дни
+    AND date_seq::text NOT IN (
+        '2025-12-31', '2026-01-01', '2026-01-02', '2026-01-03', '2026-01-04', 
+        '2026-01-05', '2026-01-06', '2026-01-07', '2026-01-08', '2026-01-09', 
+        '2026-01-10', '2026-01-11', '2026-02-23', '2026-03-09', '2026-05-01', 
+        '2026-05-11', '2026-06-12', '2026-11-04'
+    )
+    AND NOT EXISTS (
+        SELECT 1 FROM drivingsessions ds 
+        WHERE ds.session_date = date_seq::date 
+        AND ds.session_time = time_seq::time::time
+        AND ds.master_id = m.id
+    );
 
